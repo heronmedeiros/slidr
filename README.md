@@ -32,3 +32,14 @@
     /attend/:presentation_id/watch/:user_id
 
         Render slides, etc.
+
+
+
+
+
+{
+    type: "slidePosition",
+    action: "next"
+}
+
+

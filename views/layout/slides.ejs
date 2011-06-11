@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Slidr - Speaker</title>
+    </head>
+
+    <body>
+        <%- body %>
+
+        <script type="text/javascript" src="/javascripts/jquery.js"></script>
+        <script type="text/javascript" src="/javascripts/slidr.js"></script>
+        <script type="text/javascript">
+          Slidr.id = "<%= params.id %>";
+        </script>
+    </body>
+</html>

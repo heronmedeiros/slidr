@@ -1,9 +1,11 @@
 var express = require("express")
   , form = require("connect-form")
+  , ws = require("./lib/ws")
   , app = express.createServer(form({keepExtensions: true}))
   , exec = require("child_process").exec
   , helper = require("./helper")
   , Presentation = require("./models/presentation")
+  , handlers = require("./handlers")
 ;
 
 app.configure(function(){
@@ -18,12 +20,15 @@ app.get("/", function(req, res){
 
 app.get("/create", function(req, res){
   var presentation = new Presentation();
-  Presentation.all[presentation.id] = presentation;
   res.redirect("/speaker/" + presentation.id);
 });
 
 app.get("/speaker/:id", function(req, res, next){
   res.render("create.ejs", {layout: "layout/speaker.ejs", params: req.params, presentation: Presentation.all[req.params.id]});
+});
+
+app.get("/speaker/:id/talk", function(req, res, next){
+  res.render("speaker.ejs", {layout: "layout/slides.ejs", params: req.params, presentation: Presentation.all[req.params.id]});
 });
 
 app.post("/speaker/:id/upload", function(req, res, next){
@@ -90,7 +95,29 @@ app.get("/attend/:presentation_id/:id", function(req, res, next){
     return next();
   };
 
-  res.send("Welcome!");
+  res.render("attendee.ejs", {layout: "layout/slides.ejs", params: req.params, presentation: presentation});
 });
+
+ws.createServer(function(websocket){
+  console.log(websocket);
+
+  websocket.addListener("connect", function(){
+    websocket.write("Hello from node!");
+  });
+
+  websocket.addListener("data", function(data){
+    var payload = JSON.parse(data)
+      , handler = handlers[payload.type]
+    ;
+
+    payload.presentation = Presentation.all[payload.id];
+
+    if (handler) {
+      handler(payload);
+    } else {
+      console.log("Unknown message: ", payload);
+    }
+  });
+}).listen(2346)
 
 app.listen(2345);

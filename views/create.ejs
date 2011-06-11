@@ -16,6 +16,11 @@
         <dt>Slides</dt>
         <dd><%= presentation.slides %></dd>
 
+        <dt>Speaker URL</dt>
+        <dd>
+            <a href="/speaker/<%= params.id %>/talk">/talk/<%= params.id %></a>
+        </dd>
+
         <dt>Join URL</dt>
         <dd>
             <a href="/attend/<%= params.id %>">/attend/<%= params.id %></a>
