@@ -6,6 +6,7 @@ var express = require("express")
   , helper = require("./helper")
   , Presentation = require("./models/presentation")
   , handlers = require("./handlers")
+  , emitter = new process.EventEmitter()
 ;
 
 app.configure(function(){
@@ -27,8 +28,8 @@ app.get("/speaker/:id", function(req, res, next){
   res.render("create.ejs", {layout: "layout/speaker.ejs", params: req.params, presentation: Presentation.all[req.params.id]});
 });
 
-app.get("/speaker/:id/talk", function(req, res, next){
-  res.render("speaker.ejs", {layout: "layout/slides.ejs", params: req.params, presentation: Presentation.all[req.params.id]});
+app.get("/speaker/:presentation_id/talk", function(req, res, next){
+  res.render("speaker.ejs", {layout: "layout/slides.ejs", params: req.params, presentation: Presentation.all[req.params.presentation_id]});
 });
 
 app.post("/speaker/:id/upload", function(req, res, next){
@@ -99,10 +100,42 @@ app.get("/attend/:presentation_id/:id", function(req, res, next){
 });
 
 ws.createServer(function(websocket){
-  console.log(websocket);
+  var emitterHandler = function(payload) {
+    var attendee = payload.presentation.attendees[payload.subscriptionId]
+      , copy = {}
+    ;
+
+    copy.sender = {
+      name: attendee.name,
+      gravatar: attendee.gravatarUrl()
+    }
+
+    var filter = [
+      "presentation",
+      "subscrptionId",
+      "emitter"
+    ];
+
+    for (var name in payload) {
+      if (filter.indexOf(name) >= 0) {
+        continue;
+      }
+
+      copy[name] = payload[name];
+    }
+
+    send(websocket, copy);
+  };
+
+  var send = function(socket, payload) {
+    socket.write(JSON.stringify(payload));
+  }
+
+  emitter.on("chatMessage", emitterHandler);
+  emitter.on("online", emitterHandler);
+  emitter.on("sliderPosition", emitterHandler);
 
   websocket.addListener("connect", function(){
-    websocket.write("Hello from node!");
   });
 
   websocket.addListener("data", function(data){
@@ -110,12 +143,13 @@ ws.createServer(function(websocket){
       , handler = handlers[payload.type]
     ;
 
-    payload.presentation = Presentation.all[payload.id];
+    payload.presentation = Presentation.all[payload.presentationId];
+    payload.emitter = emitter;
 
     if (handler) {
       handler(payload);
     } else {
-      console.log("Unknown message: ", payload);
+      console.log("== Unknown message: ", payload);
     }
   });
 }).listen(2346)

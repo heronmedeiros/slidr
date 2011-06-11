@@ -3,15 +3,41 @@
     <head>
         <meta charset="UTF-8">
         <title>Slidr - Speaker</title>
+        <link rel="stylesheet" href="/stylesheets/slidr.css" type="text/css">
     </head>
 
     <body>
         <%- body %>
 
+        <div id="chat">
+            <ul id="chat-messages" class="list"></ul>
+
+            <textarea></textarea>
+        </div>
+
+        <ul id="user-list" class="list"></ul>
+
+
+        <script type="text/html" id="user-template">
+          <li>
+            <img src="%{gravatar}" alt="%{name}" />
+            <strong>%{name}</strong>
+          </li>
+        </script>
+
+        <script type="text/html" id="message-template">
+          <li>
+            <img src="%{gravatar}" alt="%{name}" />
+            <strong>%{name}:</strong>
+            %{message}
+          </li>
+        </script>
+
         <script type="text/javascript" src="/javascripts/jquery.js"></script>
         <script type="text/javascript" src="/javascripts/slidr.js"></script>
         <script type="text/javascript">
-          Slidr.id = "<%= params.id %>";
+          Slidr.presentationId = "<%= params.presentation_id %>";
+          Slidr.subscriptionId = "<%= params.id %>";
         </script>
     </body>
 </html>
