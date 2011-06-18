@@ -1,0 +1,33 @@
+<div id="users" class="box">
+</div>
+
+<div id="message-box" class="box">
+    <div id="messages">
+    </div>
+
+    <textarea id="chat-message"></textarea>
+</div>
+
+<script id="user-template" type="text/html">
+  <div class="user" id="user-{{id}}">
+    <img src="{{gravatar}}" alt="{{name}}" />
+    {{name}}
+  </div>
+</script>
+
+<script id="message-template" type="text/html">
+  <div class="message" id="message-{{id}}">
+    <img src="{{gravatar}}" alt="{{name}}" />
+    <strong>{{name}}</strong><br/>
+    <span>{{message}}</span>
+  </div>
+</script>
+
+<script type="text/javascript" src="/javascripts/jquery.js"></script>
+<script type="text/javascript" src="/javascripts/slidr.js"></script>
+<script type="text/javascript">
+  Slidr.user = {
+      id: "<%= params.id %>"
+    , presentationId: "<%= params.presentation_id %>"
+  };
+</script>

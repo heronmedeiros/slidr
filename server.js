@@ -6,6 +6,10 @@ var express = require("express")
   , models = require("./models")
   , Presentation = models.Presentation
   , Attendee = models.Attendee
+  , ws = require("./lib/ws")
+  , handlers = require("./handlers")
+  , emitter = new process.EventEmitter()
+  , users = {}
 ;
 
 app.configure(function(){
@@ -75,7 +79,7 @@ app.post("/speaker/:id/upload", function(req, res, next){
 
 app.get("/attend/:presentation_id", function(req, res, next){
   Presentation.findById(req.params.presentation_id, function(err, presentation){
-    if (err || !presentation) { return next(); }
+    if (err || !presentation) { return next(err); }
 
     res.render("attend.ejs", {
       params: req.params,
@@ -110,12 +114,67 @@ app.get("/attend/:presentation_id/:id", function(req, res, next){
       return item.id == req.params.id
     })[0];
 
-    if (attendee) {
+    if (!attendee) {
       return next();
     };
 
-    res.send("Welcome!");
+    res.render("watch.ejs", {
+      layout: "layout/site.ejs",
+      params: req.params,
+      presentation: presentation,
+      attendee: attendee
+    });
   });
 });
 
+appWS = ws.createServer(function (socket) {
+  var write = function(websocket, message, payload) {
+    payload.type = message;
+    websocket.write(JSON.stringify(payload));
+  }
+
+  var emitterHandler = function(message, payload) {
+    console.log(arguments);
+    console.log("== emitting message: ", message);
+    write(socket, message, payload);
+  }
+
+  var emit = function(message, payload) {
+    emitter.emit(message, message, payload);
+  }
+
+  emitter.on("joined", emitterHandler);
+  emitter.on("message", emitterHandler);
+
+  socket.addListener("connect", function () {
+  });
+
+  socket.addListener("data", function (payload) {
+    var data = JSON.parse(payload.toString())
+      , handler = handlers[data.type]
+    ;
+
+    console.log("== user info: ", socket.user);
+
+    if (!handler) {
+      return console.log("Invalid message: ", payload);
+    }
+
+    var env = {
+        emitter: emitter
+      , socket: socket
+      , emit: emit
+      , write: write
+      , users: users
+    }
+
+    handler.call(this, env, data);
+  })
+
+  socket.addListener("close", function () {
+    delete(users[socket.user.id]);
+  });
+})
+
 app.listen(2345);
+appWS.listen(2346);

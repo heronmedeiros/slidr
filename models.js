@@ -1,5 +1,5 @@
 var helper = require("./helper")
-  , mongoose = require('mongoose')
+  , mongoose = require("mongoose")
   , Schema = mongoose.Schema
 ;
 
