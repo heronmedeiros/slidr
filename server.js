@@ -3,7 +3,9 @@ var express = require("express")
   , app = express.createServer(form({keepExtensions: true}))
   , exec = require("child_process").exec
   , helper = require("./helper")
-  , Presentation = require("./models/presentation")
+  , models = require("./models")
+  , Presentation = models.Presentation
+  , Attendee = models.Attendee
 ;
 
 app.configure(function(){
@@ -18,12 +20,25 @@ app.get("/", function(req, res){
 
 app.get("/create", function(req, res){
   var presentation = new Presentation();
-  Presentation.all[presentation.id] = presentation;
-  res.redirect("/speaker/" + presentation.id);
+  presentation.save(function(err){
+    if (err) {
+      throw err;
+    }
+
+    res.redirect("/speaker/" + presentation.id);
+  });
 });
 
 app.get("/speaker/:id", function(req, res, next){
-  res.render("create.ejs", {layout: "layout/speaker.ejs", params: req.params, presentation: Presentation.all[req.params.id]});
+  Presentation.findById(req.params.id, function(err, presentation){
+    if (err || !presentation) { return next(err); }
+
+    res.render("create.ejs", {
+      layout: "layout/speaker.ejs",
+      params: req.params,
+      presentation: presentation
+    });
+  });
 });
 
 app.post("/speaker/:id/upload", function(req, res, next){
@@ -34,7 +49,7 @@ app.post("/speaker/:id/upload", function(req, res, next){
   });
 
   req.form.complete(function(err, fields, files){
-    if (err) {
+    if (err || !presentation) {
       return next(error);
     }
 
@@ -59,38 +74,48 @@ app.post("/speaker/:id/upload", function(req, res, next){
 });
 
 app.get("/attend/:presentation_id", function(req, res, next){
-  if (!Presentation.all[req.params.presentation_id]) {
-    return next();
-  };
+  Presentation.findById(req.params.presentation_id, function(err, presentation){
+    if (err || !presentation) { return next(); }
 
-  res.render("attend.ejs", {params: req.params, layout: "layout/site.ejs"})
+    res.render("attend.ejs", {
+      params: req.params,
+      layout: "layout/site.ejs"
+    });
+  });
 });
 
 app.post("/attend/:presentation_id", function(req, res, next){
-  var presentation = Presentation.all[req.params.presentation_id];
+  Presentation.findById(req.params.presentation_id, function(err, presentation){
+    if (err || !presentation) { return next(err); }
 
-  if (!presentation) {
-    return next();
-  };
+    var attendee = new Attendee({
+        name: req.body.attendee.name
+      , email: req.body.attendee.email
+    });
 
-  var attendee = presentation.createAttendee(req.body.attendee);
+    presentation.attendees.push(attendee);
 
-  res.redirect("/attend/" + req.params.presentation_id + "/" + attendee.id);
+    presentation.save(function(err){
+      if (err) { throw err; }
+      res.redirect("/attend/" + presentation.id + "/" + attendee._id);
+    });
+  });
 });
 
 app.get("/attend/:presentation_id/:id", function(req, res, next){
-  var presentation = Presentation.all[req.params.presentation_id]
-    , attendee = presentation.attendees[req.params.id]
-  ;
+  Presentation.findById(req.params.presentation_id, function(err, presentation){
+    if (err || !presentation) { return next(err); }
 
-  console.log(presentation);
-  console.log(attendee);
+    var attendee = presentation.attendees.filter(function(item){
+      return item.id == req.params.id
+    })[0];
 
-  if (!attendee) {
-    return next();
-  };
+    if (attendee) {
+      return next();
+    };
 
-  res.send("Welcome!");
+    res.send("Welcome!");
+  });
 });
 
 app.listen(2345);
