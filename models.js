@@ -18,7 +18,8 @@ AttendeeSchema.virtual("gravatarUrl").get(function(){
 mongoose.model("Attendee", AttendeeSchema);
 
 var PresentationSchema = new Schema({
-  attendees : [AttendeeSchema]
+    slides : Number
+  , attendees : [AttendeeSchema]
 });
 
 mongoose.model("Presentation", PresentationSchema);
