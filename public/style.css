@@ -22,6 +22,10 @@ img {
   overflow: auto;
 }
 
+#users {
+  display: none;
+}
+
 .message,
 .user {
   overflow: hidden;
