@@ -70,6 +70,16 @@ Slidr.Handlers.message = function(payload) {
 }
 
 $(function(){
+  $(".users").click(function(){
+    $("#message-box").hide();
+    $("#users").show();
+  });
+  
+  $(".chat").click(function(){
+    $("#message-box").show();
+    $("#users").hide();
+  });
+  
   Slidr.socket = new WebSocket("ws://localhost:" + Slidr.wsPort);
   Slidr.socket.onopen = Slidr.onOpen;
   Slidr.socket.onerror = Slidr.onError;
