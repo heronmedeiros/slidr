@@ -1,1 +1,13 @@
-<a href="/create">Create your own presentation</a>
+<a href="/create">Create</a>
+
+<% if(presentations.length > 0) { %>
+  <p>Presentations:</p>
+  
+  <% presentations.forEach(function(presentation){ %>
+  <ul id="presentations">
+    <li><a href="/attend/<%= presentation.id %>"><%= presentation.id %></a></li>
+  </ul>
+  <% }); %>
+<% } else { %>
+  <p>No presentations</p>
+<% } %>

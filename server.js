@@ -19,7 +19,9 @@ app.configure(function(){
 });
 
 app.get("/", function(req, res){
-  res.render("index.ejs", {layout: "layout/site.ejs"});
+  Presentation.find({}, function(err, docs){
+    res.render("index.ejs", {layout: "layout/site.ejs", presentations: docs});
+  });
 });
 
 app.get("/create", function(req, res){
