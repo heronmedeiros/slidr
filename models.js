@@ -7,8 +7,8 @@ var helper = require("./helper")
 mongoose.connect("mongodb://localhost/slidr");
 
 var AttendeeSchema = new Schema({
-    name  : String
-  , email : {type: String, index: true}
+    name: String
+  , email: {type: String, index: true}
 });
 
 AttendeeSchema.virtual("gravatarUrl").get(function(){
@@ -18,8 +18,8 @@ AttendeeSchema.virtual("gravatarUrl").get(function(){
 mongoose.model("Attendee", AttendeeSchema);
 
 var PresentationSchema = new Schema({
-    slides : Number
-  , attendees : [AttendeeSchema]
+    slides: {type: Number, default: 0}
+  , attendees: [AttendeeSchema]
 });
 
 mongoose.model("Presentation", PresentationSchema);
