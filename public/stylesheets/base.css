@@ -1,0 +1,51 @@
+body {
+  font-family: sans-serif;
+  font-size: 13px;
+}
+
+.box {
+  border: 1px solid #ccc;
+  height: 250px;
+  float: left;
+  margin-right: 20px;
+  width: 200px;
+}
+
+img {
+  float: left;
+  margin: 0 5px 5px 0;
+  width: 16px;
+}
+
+#messages {
+  height: 200px;
+  overflow: auto;
+}
+
+#users {
+  display: none;
+}
+
+.message,
+.user {
+  overflow: hidden;
+  padding: 5px;
+}
+
+.message strong {
+  font-weight: normal;
+  font-size: 12px;
+}
+
+.message span {
+  color: #999;
+}
+
+.message span.time {
+  font-size: 11px;
+}
+
+textarea {
+  height: 40px;
+  width: 190px;
+}
