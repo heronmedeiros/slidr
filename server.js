@@ -19,7 +19,9 @@ app.configure(function(){
 });
 
 app.get("/", function(req, res){
-  res.render("index.ejs", {layout: "layout/site.ejs"});
+  Presentation.find({}, function(err, docs){
+    res.render("index.ejs", {layout: "layout/site.ejs", presentations: docs});
+  });
 });
 
 app.get("/create", function(req, res){
@@ -53,7 +55,7 @@ app.post("/speaker/:id/upload", function(req, res, next){
   });
 
   req.form.complete(function(err, fields, files){
-    if (err || !presentation) {
+    if (err) {
       return next(error);
     }
 
@@ -69,11 +71,17 @@ app.post("/speaker/:id/upload", function(req, res, next){
     console.log("== command: ", cmd);
 
     exec(cmd, function(err, stdout, stderr){
-      Presentation.all[req.params.id].slides = parseInt(stdout.replace(/[^\d]/g, ""), 10);
-      console.log(Presentation.all);
-      res.redirect("/speaker/" + req.params.id);
-    });
+      Presentation.findById(req.params.id, function(err, presentation){
+        if (err || !presentation) { return next(err); }
 
+        presentation.slides = parseInt(stdout.replace(/[^\d]/g, ""), 10);
+        
+        presentation.save(function(err){
+          if (err) { throw err };
+          res.redirect("/speaker/" + presentation.id);
+        });
+      });
+    });
   });
 });
 
