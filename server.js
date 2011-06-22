@@ -12,19 +12,38 @@ var express = require("express")
   , users = {}
 ;
 
+function basic_auth(req, res, next) {
+  if(req.headers.authorization && req.headers.authorization.search("Basic") == 0) {
+    if(new Buffer(req.headers.authorization.split(" ")[1], "base64").toString() == "admin:123") {
+      next();
+      return;
+    }
+  }
+  
+  res.header('WWW-Authenticate', 'Basic realm="Admin Area"');
+  
+  if(req.headers.authorization) {
+    setTimeout(function(){
+      res.send("Authentication Required", 401);
+    }, 3000);
+  } else {
+    res.send("Authentication Required", 401);
+  }
+}
+
 app.configure(function(){
   app.use(express.methodOverride());
   app.use(express.bodyParser());
   app.use(express.static(__dirname + "/public"));
 });
 
-app.get("/", function(req, res){
+app.get("/", basic_auth, function(req, res){
   Presentation.find({}, function(err, docs){
     res.render("index.ejs", {layout: "layout/site.ejs", presentations: docs});
   });
 });
 
-app.get("/create", function(req, res){
+app.get("/create", basic_auth, function(req, res){
   var presentation = new Presentation();
   presentation.save(function(err){
     if (err) {
@@ -35,7 +54,7 @@ app.get("/create", function(req, res){
   });
 });
 
-app.get("/speaker/:id", function(req, res, next){
+app.get("/speaker/:id", basic_auth, function(req, res, next){
   Presentation.findById(req.params.id, function(err, presentation){
     if (err || !presentation) { return next(err); }
 
@@ -47,7 +66,7 @@ app.get("/speaker/:id", function(req, res, next){
   });
 });
 
-app.post("/speaker/:id/upload", function(req, res, next){
+app.post("/speaker/:id/upload", basic_auth, function(req, res, next){
   req.form.on("progress", function(received, expected){
     console.log("received: " + received);
     console.log("expected: " + expected);
