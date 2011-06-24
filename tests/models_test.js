@@ -3,8 +3,8 @@ var testCase = require('nodeunit').testCase
 ;
 
 
-module.exports = testCase({
-  "Moldels Presentation must have prototype slides": function(test){
+module.exports['Presentation'] = testCase({
+  "Moldel Presentation must have prototype slides": function(test){
      test.ok(models.Presentation.prototype.hasOwnProperty("slides"));
      test.done();
    },
