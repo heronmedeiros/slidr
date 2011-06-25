@@ -41,6 +41,10 @@ img {
   color: #999;
 }
 
+.message span.time {
+  font-size: 11px;
+}
+
 textarea {
   height: 40px;
   width: 190px;

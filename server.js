@@ -10,7 +10,27 @@ var express = require("express")
   , handlers = require("./handlers")
   , emitter = new process.EventEmitter()
   , users = {}
+  , slides = {}
 ;
+
+function basicAuth(req, res, next) {
+  if(req.headers.authorization && req.headers.authorization.search("Basic") == 0) {
+    if(new Buffer(req.headers.authorization.split(" ")[1], "base64").toString() == "admin:123") {
+      next();
+      return;
+    }
+  }
+
+  res.header('WWW-Authenticate', 'Basic realm="Admin Area"');
+
+  if(req.headers.authorization) {
+    setTimeout(function(){
+      res.send("Authentication Required", 401);
+    }, 3000);
+  } else {
+    res.send("Authentication Required", 401);
+  }
+}
 
 app.configure(function(){
   app.use(express.methodOverride());
@@ -18,13 +38,13 @@ app.configure(function(){
   app.use(express.static(__dirname + "/public"));
 });
 
-app.get("/", function(req, res){
-  Presentation.find({}, function (err,docs){
+app.get("/", basicAuth, function(req, res){
+  Presentation.find({}, function(err, docs){
     res.render("index.ejs", {layout: "layout/site.ejs", presentations: docs});
   });
 });
 
-app.get("/create", function (req, res){
+app.get("/create", basicAuth, function(req, res){
   var presentation = new Presentation();
   presentation.save(function (err){
     if (err) {
@@ -35,8 +55,8 @@ app.get("/create", function (req, res){
   });
 });
 
-app.get("/speaker/:id", function (req, res, next){
-  Presentation.findById(req.params.id, function (err, presentation){
+app.get("/speaker/:id", basicAuth, function(req, res, next){
+  Presentation.findById(req.params.id, function(err, presentation){
     if (err || !presentation) { return next(err); }
 
     res.render("create.ejs", {
@@ -47,8 +67,8 @@ app.get("/speaker/:id", function (req, res, next){
   });
 });
 
-app.post("/speaker/:id/upload", function (req, res, next){
-  req.form.on("progress", function (received, expected){
+app.post("/speaker/:id/upload", basicAuth, function(req, res, next){
+  req.form.on("progress", function(received, expected){
     console.log("received: " + received);
     console.log("expected: " + expected);
     console.log((received / expected * 100) + "%");
@@ -63,9 +83,16 @@ app.post("/speaker/:id/upload", function (req, res, next){
 
     console.log("== command: ", cmd);
 
-    exec(cmd, function (err, stdout, stderr){
-      Presentation.findById(req.params.id, function (err, presentation){
-        ppt(err,res, presentation, stdout);
+    exec(cmd, function(err, stdout, stderr){
+      Presentation.findById(req.params.id, function(err, presentation){
+        if (err || !presentation) { return next(err); }
+
+        presentation.slides = parseInt(stdout.replace(/[^\d]/g, ""), 10);
+
+        presentation.save(function(err){
+          if (err) { throw err };
+          res.redirect("/speaker/" + presentation.id);
+        });
       });
     });
   });
@@ -116,7 +143,30 @@ app.get("/attend/:presentation_id/:id", function (req, res, next){
       layout: "layout/site.ejs",
       params: req.params,
       presentation: presentation,
-      attendee: attendee
+      attendee: attendee,
+      role: "attendee"
+    });
+  });
+});
+
+app.get("/talk/:presentation_id/:id", function(req, res, next){
+  Presentation.findById(req.params.presentation_id, function(err, presentation){
+    if (err || !presentation) { return next(err); }
+
+    var attendee = presentation.attendees.filter(function(item){
+      return item.id == req.params.id
+    })[0];
+
+    if (!attendee) {
+      return next();
+    };
+
+    res.render("watch.ejs", {
+      layout: "layout/site.ejs",
+      params: req.params,
+      presentation: presentation,
+      attendee: attendee,
+      role: "speaker"
     });
   });
 });
@@ -139,6 +189,7 @@ appWS = ws.createServer(function (socket){
 
   emitter.on("joined", emitterHandler);
   emitter.on("message", emitterHandler);
+  emitter.on("slide", emitterHandler);
 
   socket.addListener("connect", function(){
   });
@@ -147,8 +198,6 @@ appWS = ws.createServer(function (socket){
     var data = JSON.parse(payload.toString())
       , handler = handlers[data.type]
     ;
-
-    console.log("== user info: ", socket.user);
 
     if (!handler) {
       return console.log("Invalid message: ", payload);
@@ -160,6 +209,7 @@ appWS = ws.createServer(function (socket){
       , emit: emit
       , write: write
       , users: users
+      , slides: slides
     }
 
     handler.call(this, env, data);

@@ -46,8 +46,20 @@ Slidr.onMessage = function(payload) {
 
 Slidr.Handlers = {};
 
+Slidr.Handlers.slideCount = function(payload) {
+  var img = new Image();
+
+  for (var i = 1; i <= payload.count; i++) {
+    img.src = Slidr.slideBasePath + "/slides" + i + ".png";
+  }
+}
+
 Slidr.Handlers.joined = function(payload) {
   Slidr.appendUser(payload);
+}
+
+Slidr.Handlers.slide = function(payload) {
+  $("#slide").attr("src", Slidr.slideBasePath + "/slides" + payload.current + ".png");
 }
 
 Slidr.Handlers.userList = function(payload) {
@@ -61,6 +73,7 @@ Slidr.Handlers.message = function(payload) {
       gravatar: payload.user.gravatar
     , name: payload.user.name
     , message: $("<span>" + payload.message + "</span>").text()
+    , time: new Date().toLocaleTimeString()
   });
 
   $("#messages")
@@ -70,21 +83,30 @@ Slidr.Handlers.message = function(payload) {
 }
 
 $(function(){
-  $(".users").click(function(){
-    $("#message-box").hide();
-    $("#users").show();
-  });
-  
-  $(".chat").click(function(){
-    $("#message-box").show();
-    $("#users").hide();
-  });
-  
   Slidr.socket = new WebSocket("ws://localhost:" + Slidr.wsPort);
   Slidr.socket.onopen = Slidr.onOpen;
   Slidr.socket.onerror = Slidr.onError;
   Slidr.socket.onmessage = Slidr.onMessage;
   Slidr.socket.onclose = Slidr.onClose;
+  Slidr.slideBasePath = "/slides/" + Slidr.user.presentationId;
+
+  $(".users").click(function(){
+    $("#message-box").hide();
+    $("#users").show();
+    $("#tabs a").removeClass("active");
+    $(this).addClass("active");
+
+    return false;
+  });
+
+  $(".chat").click(function(){
+    $("#message-box").show();
+    $("#users").hide();
+    $("#tabs a").removeClass("active");
+    $(this).addClass("active");
+
+    return false;
+  });
 
   $("#chat-message").keyup(function(e){
     if (e.keyCode == 13) {
@@ -92,5 +114,15 @@ $(function(){
       this.value = "";
       return false;
     };
+  });
+
+  $("#next").click(function(){
+    Slidr.write("slide", {direction: "forward"});
+    return false;
+  });
+
+  $("#prev").click(function(){
+    Slidr.write("slide", {direction: "backward"});
+    return false;
   });
 });

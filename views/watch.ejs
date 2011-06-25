@@ -1,29 +1,40 @@
-<ul id="boxes">
-  <li><a href="#" class="users">Users</a></li>
-  <li><a href="#" class="chat">Chat</a></li>
+<ul id="tabs">
+  <li><a href="#users" class="users">Users</a></li>
+  <li><a href="#chat" class="chat active">Chat</a></li>
 </ul>
 
 <div id="users" class="box">
 </div>
 
 <div id="message-box" class="box">
-    <div id="messages">
-    </div>
+  <div id="messages">
+  </div>
 
-    <textarea id="chat-message"></textarea>
+  <textarea id="chat-message"></textarea>
+</div>
+
+<div id="slides">
+  <img src="/slide.png" alt="" id="slide" />
+
+  <% if(role == "speaker"){ %>
+    <ul class="buttons">
+      <li><a href="#" id="prev">Previous slide</a></li>
+      <li><a href="#" id="next">Next slide</a></li>
+    </ul>
+  <% } %>
 </div>
 
 <script id="user-template" type="text/html">
   <div class="user" id="user-{{id}}">
-    <img src="{{gravatar}}" alt="{{name}}" />
+    <img class="gravatar" src="{{gravatar}}" alt="{{name}}" />
     {{name}}
   </div>
 </script>
 
 <script id="message-template" type="text/html">
-  <div class="message" id="message-{{id}}">
-    <img src="{{gravatar}}" alt="{{name}}" />
-    <strong>{{name}}</strong><br/>
+  <div class="message" id="message-{{id}}" title="Sent at {{time}}">
+    <img class="gravatar" src="{{gravatar}}" alt="{{name}}" />
+    <strong>{{name}}:</strong>
     <span>{{message}}</span>
   </div>
 </script>
