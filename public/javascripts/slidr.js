@@ -80,11 +80,19 @@ $(function(){
   $(".users").click(function(){
     $("#message-box").hide();
     $("#users").show();
+    $("#tabs a").removeClass("active");
+    $(this).addClass("active");
+
+    return false;
   });
 
   $(".chat").click(function(){
     $("#message-box").show();
     $("#users").hide();
+    $("#tabs a").removeClass("active");
+    $(this).addClass("active");
+
+    return false;
   });
 
   $("#chat-message").keyup(function(e){

@@ -49,3 +49,29 @@ textarea {
   height: 40px;
   width: 190px;
 }
+
+#tabs {
+  list-style: none;
+  margin: 0;
+  overflow: auto;
+  padding: 0;
+}
+
+#tabs li {
+  float: left;
+}
+
+#tabs a {
+  background: #ccc;
+  color: #888;
+  display: block;
+  padding: 3px 5px;
+  text-align: center;
+  text-decoration: none;
+  width: 91px;
+}
+
+#tabs .active {
+  background: #aaa;
+  color: #222;
+}
