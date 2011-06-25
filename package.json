@@ -5,7 +5,7 @@
     "express": ">= 0",
     "ejs": ">= 0",
     "connect-form": ">= 0",
-    "mongoose": ">= 0"
+    "mongoose": ">= 0",
     "nodeunit":">= 0"
   }
 }
