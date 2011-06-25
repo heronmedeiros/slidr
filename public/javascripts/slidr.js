@@ -46,8 +46,20 @@ Slidr.onMessage = function(payload) {
 
 Slidr.Handlers = {};
 
+Slidr.Handlers.slideCount = function(payload) {
+  var img = new Image();
+
+  for (var i = 1; i <= payload.count; i++) {
+    img.src = Slidr.slideBasePath + "/slides" + i + ".png";
+  }
+}
+
 Slidr.Handlers.joined = function(payload) {
   Slidr.appendUser(payload);
+}
+
+Slidr.Handlers.slide = function(payload) {
+  $("#slide").attr("src", Slidr.slideBasePath + "/slides" + payload.current + ".png");
 }
 
 Slidr.Handlers.userList = function(payload) {
@@ -76,6 +88,7 @@ $(function(){
   Slidr.socket.onerror = Slidr.onError;
   Slidr.socket.onmessage = Slidr.onMessage;
   Slidr.socket.onclose = Slidr.onClose;
+  Slidr.slideBasePath = "/slides/" + Slidr.user.presentationId;
 
   $(".users").click(function(){
     $("#message-box").hide();
@@ -101,5 +114,15 @@ $(function(){
       this.value = "";
       return false;
     };
+  });
+
+  $("#next").click(function(){
+    Slidr.write("slide", {direction: "forward"});
+    return false;
+  });
+
+  $("#prev").click(function(){
+    Slidr.write("slide", {direction: "backward"});
+    return false;
   });
 });
