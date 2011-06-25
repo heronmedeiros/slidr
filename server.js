@@ -19,9 +19,9 @@ function basic_auth(req, res, next) {
       return;
     }
   }
-  
+
   res.header('WWW-Authenticate', 'Basic realm="Admin Area"');
-  
+
   if(req.headers.authorization) {
     setTimeout(function(){
       res.send("Authentication Required", 401);
@@ -94,7 +94,7 @@ app.post("/speaker/:id/upload", basic_auth, function(req, res, next){
         if (err || !presentation) { return next(err); }
 
         presentation.slides = parseInt(stdout.replace(/[^\d]/g, ""), 10);
-        
+
         presentation.save(function(err){
           if (err) { throw err };
           res.redirect("/speaker/" + presentation.id);

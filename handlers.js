@@ -14,8 +14,7 @@ User = function(attendee, payload){
     , this.id = payload.id.md5()
 }
 
-funcEnv = function(env, attendee, payload)
-{
+prepareEnv = function(env, attendee, payload){
   user = new User(attendee, payload);
   env.socket.user = user;
   env.write(env.socket, "userList", {users: env.users});
@@ -23,7 +22,7 @@ funcEnv = function(env, attendee, payload)
   env.emit("joined", user);
 }
 
-Handler.connect = function(env, payload) {
+Handler.connect = function(env, payload){
   Presentation.findById(payload.presentationId, function(err, presentation){
     if (err || !presentation) {
       return env.socket.end();
@@ -37,7 +36,7 @@ Handler.connect = function(env, payload) {
       return env.socket.end();
     };
 
-    funcEnv(env, attendee, payload);
+    prepareEnv(env, attendee, payload);
   });
 }
 
